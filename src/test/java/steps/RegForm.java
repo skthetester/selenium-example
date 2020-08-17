@@ -2,23 +2,45 @@ package steps;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.annotations.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import static io.github.bonigarcia.wdm.config.DriverManagerType.CHROME;
+import static io.github.bonigarcia.wdm.config.DriverManagerType.FIREFOX;
 
 public class RegForm {
-    private static final String WEBURL = "https://colorlib.com/etc/regform/colorlib-regform-4/"; //"http://demo.testingchief.com/";
+    private static final String WEBURL = "https://colorlib.com/etc/regform/colorlib-regform-4/";
+    //    "http://demo.testingchief.com/";
+    private static final boolean RUN_GRID = true;
+    private static final String HUB_URL = "http://192.168.0.23:4444/wd/hub";
 
     @Test(dataProvider = "data")
-    public void test(String firstName) throws InterruptedException {
-        WebDriverManager.chromedriver().driverVersion("84.0.4147.30").setup();
-        WebDriverManager.getInstance(CHROME).setup();
-        WebDriver driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    public void test(String firstName) throws InterruptedException, MalformedURLException {
+        WebDriver driver;
+
+        if (RUN_GRID) {
+            DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+            capabilities.setBrowserName("firefox");
+            capabilities.setPlatform(Platform.LINUX);
+            driver = new RemoteWebDriver(new URL(HUB_URL), capabilities);
+        } else {
+//            WebDriverManager.chromedriver().driverVersion("84.0.4147.30").setup();
+            WebDriverManager.getInstance(FIREFOX).setup();
+            driver = new FirefoxDriver();
+        }
+
+        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+        driver.manage().window().maximize();
         driver.get(WEBURL);
         driver.findElement(By.name("first_name")).sendKeys(firstName);
         driver.findElement(By.name("last_name")).sendKeys("Smith");
